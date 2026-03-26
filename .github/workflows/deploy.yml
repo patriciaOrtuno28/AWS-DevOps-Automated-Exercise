@@ -88,6 +88,10 @@ jobs:
             --query taskDefinition \
             > task-def.json
 
+      - name: Read app version from package.json
+        id: app-version
+        run: echo "version=$(node -p "require('./app/package.json').version")" >> $GITHUB_OUTPUT
+
       - name: Update task definition with new image
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -95,6 +99,8 @@ jobs:
           task-definition: task-def.json
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.image }}
+          environment-variables: |
+            APP_VERSION=${{ steps.app-version.outputs.version }}
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
