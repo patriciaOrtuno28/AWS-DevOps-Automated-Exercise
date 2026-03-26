@@ -16,7 +16,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-  res.status(500).json({ status: 'broken', error: 'intentional bug' });
+  res.json({ status: 'ok', version: VERSION });
 });
 
 app.get('/info', (req, res) => {

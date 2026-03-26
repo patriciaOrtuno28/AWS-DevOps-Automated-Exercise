@@ -81,16 +81,18 @@ log_info "Image       : ${ECR_URI}:latest"
 # ── 1. CloudWatch log group ───────────────────
 log_step "1/5 — Creating CloudWatch log group..."
 
-LOG_GROUP_NAME_VAR="${LOG_GROUP_NAME}"
+# Store log group name in variable — Git Bash converts /ecs/... to a Windows path
+ECS_LOG_GROUP="/ecs/devops-exercise"
 aws logs create-log-group $R \
-  --log-group-name "${LOG_GROUP_NAME_VAR}" 2>/dev/null && \
-  log_success "Log group created: ${LOG_GROUP_NAME_VAR}" || \
+  --log-group-name "${ECS_LOG_GROUP}" 2>/dev/null && \
+  log_success "Log group created: ${ECS_LOG_GROUP}" || \
   log_warn "Log group already exists."
 
 aws logs put-retention-policy $R \
-  --log-group-name "${LOG_GROUP_NAME_VAR}" \
+  --log-group-name "${ECS_LOG_GROUP}" \
   --retention-in-days 14 2>/dev/null || true
 log_info "  Retention: 14 days"
+LOG_GROUP_NAME_VAR="${ECS_LOG_GROUP}"
 
 # ── 2. ALB + Target Group + Listener ─────────
 log_step "2/5 — Creating ALB..."
@@ -139,15 +141,16 @@ if [ -n "$EXISTING_TG" ]; then
   TG_ARN="$EXISTING_TG"
   log_warn "Target group already exists: ${TG_ARN}"
 else
-  # MSYS_NO_PATHCONV=1 prevents Git Bash on Windows from converting /health → C:/Program Files/Git/health
-  TG_ARN=$(MSYS_NO_PATHCONV=1 aws elbv2 create-target-group $R \
+  # Store path in variable — Git Bash converts literal /health to a Windows path
+  HC_PATH="/health"
+  TG_ARN=$(aws elbv2 create-target-group $R \
     --name "${TARGET_GROUP_NAME}" \
     --protocol HTTP \
     --port "${APP_PORT}" \
     --vpc-id "${VPC_ID}" \
     --target-type ip \
     --health-check-protocol HTTP \
-    --health-check-path "/health" \
+    --health-check-path "${HC_PATH}" \
     --health-check-interval-seconds 30 \
     --healthy-threshold-count 2 \
     --unhealthy-threshold-count 3 \
