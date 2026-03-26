@@ -1,0 +1,42 @@
+{
+  "family": "{{ECS_TASK_FAMILY}}",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "{{ECS_CPU}}",
+  "memory": "{{ECS_MEMORY}}",
+  "executionRoleArn": "arn:aws:iam::{{AWS_ACCOUNT_ID}}:role/{{ECS_EXECUTION_ROLE_NAME}}",
+  "taskRoleArn": "arn:aws:iam::{{AWS_ACCOUNT_ID}}:role/{{ECS_TASK_ROLE_NAME}}",
+  "containerDefinitions": [
+    {
+      "name": "{{APP_NAME}}",
+      "image": "{{ECR_URI}}:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": {{APP_PORT}},
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        { "name": "PORT", "value": "{{APP_PORT}}" },
+        { "name": "APP_VERSION", "value": "{{APP_VERSION}}" },
+        { "name": "NODE_ENV", "value": "production" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "{{LOG_GROUP_NAME}}",
+          "awslogs-region": "{{AWS_REGION}}",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -f http://localhost:{{APP_PORT}}/health || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}
