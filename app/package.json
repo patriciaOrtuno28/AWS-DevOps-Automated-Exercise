@@ -1,6 +1,6 @@
 {
   "name": "devops-exercise-app",
-  "version": "1.0.2",
+  "version": "1.0.5",
   "description": "Simple Express app for the AWS DevOps exercise",
   "main": "index.js",
   "scripts": {
